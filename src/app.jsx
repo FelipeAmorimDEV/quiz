@@ -11,7 +11,7 @@ const reducer = (state, action) => {
       ...state,
       userAnswer: action.payload,
       userScore: state.apiData[state.currentQuestion].correctOption === action.payload
-        ? state.apiData[state.currentQuestion].points
+        ? state.userScore + state.apiData[state.currentQuestion].points
         : state.userScore
     }
   }
@@ -22,7 +22,10 @@ const reducer = (state, action) => {
       currentQuestion: state.currentQuestion === state.apiData.length - 1 
         ? 0 
         : state.currentQuestion + 1, 
-      userAnswer: null
+      userAnswer: null,
+      userScore: state.currentQuestion === state.apiData.length - 1 
+      ? 0
+      : state.userScore
     }
   }
 
