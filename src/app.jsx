@@ -7,16 +7,23 @@ const reducer = (state, action) => {
   }
 
   if (action.type === 'user_selected_answer') {
-    return { 
-      ...state, 
-      userAnswer: action.payload, 
-      userScore: state.apiData[state.currentQuestion].correctOption === action.payload 
-        ? state.apiData[state.currentQuestion].points 
-        : state.userScore }
+    return {
+      ...state,
+      userAnswer: action.payload,
+      userScore: state.apiData[state.currentQuestion].correctOption === action.payload
+        ? state.apiData[state.currentQuestion].points
+        : state.userScore
+    }
   }
 
   if (action.type === 'clicked_next_question') {
-    return {...state, currentQuestion: state.currentQuestion + 1, userAnswer: null}
+    return { 
+      ...state, 
+      currentQuestion: state.currentQuestion === state.apiData.length - 1 
+        ? 0 
+        : state.currentQuestion + 1, 
+      userAnswer: null
+    }
   }
 
   return state
@@ -51,23 +58,25 @@ const App = () => {
                       className={`
                         btn 
                         btn-option ${state.userAnswer === index ? 'answer' : ''}
-                        ${state.userAnswer !== null 
-                          ? state.apiData[state.currentQuestion].correctOption === index 
+                        ${state.userAnswer !== null
+                          ? state.apiData[state.currentQuestion].correctOption === index
                             ? 'correct'
                             : 'wrong'
                           : ''}
                         `}
                       onClick={() => handleClickAnswer(index)}
                       disabled={state.userAnswer !== null}
-                      >
+                    >
                       {option}
                     </button>
                   </li>)}
               </ul>
             </div>
             <div>
-              {state.userAnswer !== null && 
-              <button className="btn btn-ui" onClick={handleClickNextQuestion}>Próxima</button>}
+              {state.userAnswer !== null &&
+                <button className="btn btn-ui" onClick={handleClickNextQuestion}>
+                  {state.currentQuestion === state.apiData.length - 1 ? 'Finalizar' : 'Próxima'}
+                </button>}
             </div>
           </>
         }
