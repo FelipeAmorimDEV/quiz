@@ -36,8 +36,8 @@ const reducer = (state, action) => {
   return state
 }
 
-
 const initialState = { apiData: [], currentQuestion: 0, userAnswer: null, userScore: 0, shouldShowResult: false }
+
 const App = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
@@ -58,6 +58,10 @@ const App = () => {
   const userHasAnswered = state.userAnswer !== null
   return (
     <div className="app">
+      <header className="app-header">
+        <img src="logo-quiz-videogames.png" alt="Logo do Quiz de Videogammes" />
+        <h1>Quiz dos Videogames</h1>
+      </header>
       <main className="main">
         {state.shouldShowResult &&
           <>
