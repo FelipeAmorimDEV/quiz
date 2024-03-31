@@ -17,20 +17,20 @@ const reducer = (state, action) => {
   }
 
   if (action.type === 'clicked_next_question') {
-    const isLastQuestion = state.currentQuestion === state.apiData.length - 1 
+    const isLastQuestion = state.currentQuestion === state.apiData.length - 1
 
-    return { 
-      ...state, 
+    return {
+      ...state,
       currentQuestion: isLastQuestion
-        ? 0 
-        : state.currentQuestion + 1, 
+        ? 0
+        : state.currentQuestion + 1,
       userAnswer: null,
       shouldShowResult: isLastQuestion
-  }
+    }
   }
 
   if (action.type === 'reset_quiz') {
-    return {...state, userAnswer: null, shouldShowResult: false, userScore: 0}
+    return { ...state, userAnswer: null, shouldShowResult: false, userScore: 0 }
   }
 
   return state
@@ -52,14 +52,17 @@ const App = () => {
   const handleClickNextQuestion = () => dispatch({ type: 'clicked_next_question' })
   const handleClickResetQuiz = () => dispatch({ type: 'reset_quiz' })
 
+  const maxScore = state.apiData.reduce((acc, question) => acc + question.points, 0)
+  const percentage = (state.userScore * 100) / maxScore
+
   const userHasAnswered = state.userAnswer !== null
   return (
     <div className="app">
       <main className="main">
-        {state.shouldShowResult && 
+        {state.shouldShowResult &&
           <>
             <div className="result">
-              <span>Você fez 10 pontos de 50 (20%)</span>
+              <span>Você fez {state.userScore} pontos de {maxScore} ({percentage}%)</span>
             </div>
             <button className="btn btn-ui" onClick={handleClickResetQuiz}>Reiniciar Quiz</button>
           </>
