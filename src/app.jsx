@@ -15,6 +15,10 @@ const reducer = (state, action) => {
         : state.userScore }
   }
 
+  if (action.type === 'clicked_next_question') {
+    return {...state, currentQuestion: state.currentQuestion + 1, userAnswer: null}
+  }
+
   return state
 }
 
@@ -31,6 +35,7 @@ const App = () => {
   }, [])
 
   const handleClickAnswer = option => dispatch({ type: 'user_selected_answer', payload: option })
+  const handleClickNextQuestion = () => dispatch({ type: 'clicked_next_question' })
 
   return (
     <div className="app">
@@ -61,7 +66,8 @@ const App = () => {
               </ul>
             </div>
             <div>
-              <button className="btn btn-ui">Próxima</button>
+              {state.userAnswer !== null && 
+              <button className="btn btn-ui" onClick={handleClickNextQuestion}>Próxima</button>}
             </div>
           </>
         }
