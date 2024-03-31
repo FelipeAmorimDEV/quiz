@@ -7,7 +7,7 @@ const reducer = (state, action) => {
   }
 
   if (action.type === 'user_selected_answer') {
-    return { ...state, userAnswer: action.payload  }
+    return { ...state, userAnswer: action.payload }
   }
 
   return state
@@ -35,7 +35,19 @@ const App = () => {
               <ul className="options">
                 {state.apiData[state.currentQuestion].options.map((option, index) =>
                   <li key={option}>
-                    <button className={`btn btn-option ${state.userAnswer === index ? 'answer' : ''}`} onClick={() => handleClickAnswer(index)}>{option}</button>
+                    <button
+                      className={`
+                        btn 
+                        btn-option ${state.userAnswer === index ? 'answer' : ''}
+                        ${state.userAnswer !== null 
+                          ? state.apiData[state.currentQuestion].correctOption === index 
+                            ? 'correct'
+                            : 'wrong'
+                          : ''}
+                        `}
+                      onClick={() => handleClickAnswer(index)}>
+                      {option}
+                    </button>
                   </li>)}
               </ul>
             </div>
