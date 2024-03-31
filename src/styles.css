@@ -42,6 +42,24 @@ ul {
   width: 50rem;
 }
 
+@media (max-width: 600px) {
+  body {
+    padding: 1rem;
+  }
+
+  .main {
+    width: initial;
+  }
+
+  .app-header{
+    flex-direction: column;
+  }
+
+  .app-header h1 {
+    text-align: center;
+  }
+}
+
 .app-header {
   margin-bottom: 4rem;
   display: flex;
