@@ -47,6 +47,7 @@ const App = () => {
   const handleClickAnswer = option => dispatch({ type: 'user_selected_answer', payload: option })
   const handleClickNextQuestion = () => dispatch({ type: 'clicked_next_question' })
 
+  const userHasAnswered = state.userAnswer !== null
   return (
     <div className="app">
       <main className="main">
@@ -61,14 +62,14 @@ const App = () => {
                       className={`
                         btn 
                         btn-option ${state.userAnswer === index ? 'answer' : ''}
-                        ${state.userAnswer !== null
+                        ${userHasAnswered
                           ? state.apiData[state.currentQuestion].correctOption === index
                             ? 'correct'
                             : 'wrong'
                           : ''}
                         `}
                       onClick={() => handleClickAnswer(index)}
-                      disabled={state.userAnswer !== null}
+                      disabled={userHasAnswered}
                     >
                       {option}
                     </button>
@@ -76,7 +77,7 @@ const App = () => {
               </ul>
             </div>
             <div>
-              {state.userAnswer !== null &&
+              {userHasAnswered &&
                 <button className="btn btn-ui" onClick={handleClickNextQuestion}>
                   {state.currentQuestion === state.apiData.length - 1 ? 'Finalizar' : 'Próxima'}
                 </button>}
