@@ -26,6 +26,11 @@ body {
   padding: 3.2rem;
 }
 
+ul {
+  list-style: none;
+}
+
+
 .app {
   display: flex;
   flex-direction: column;
