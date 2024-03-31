@@ -3,14 +3,18 @@ import { useEffect } from "react"
 
 const reducer = (state, action) => {
   if (action.type === 'fetch_questions') {
-    return {...state, apiData: action.payload}
+    return { ...state, apiData: action.payload }
+  }
+
+  if (action.type === 'user_selected_answer') {
+    return { ...state, userAnswer: action.payload  }
   }
 
   return state
-} 
+}
 
 const App = () => {
-  const [state, dispatch] = useReducer(reducer, { apiData: [] })
+  const [state, dispatch] = useReducer(reducer, { apiData: [], currentQuestion: 0, userAnswer: null })
 
   useEffect(() => {
     fetch('https://raw.githubusercontent.com/FelipeAmorimDEV/fake-data/main/videogame-questions.json')
@@ -19,23 +23,25 @@ const App = () => {
       .catch(error => alert(error.message))
   }, [])
 
+  const handleClickAnswer = option => dispatch({ type: 'user_selected_answer', payload: option })
+
   return (
     <div className="app">
       <main className="main">
-        {state.apiData.length > 0 && 
+        {state.apiData.length > 0 &&
           <>
-          <div>
-          <h4>Pergunta</h4>
-          <ul className="options">
-            <li><button className="btn btn-option">Alternativa A</button></li>
-            <li><button className="btn btn-option">Alternativa B</button></li>
-            <li><button className="btn btn-option">Alternativa C</button></li>
-            <li><button className="btn btn-option">Alternativa D</button></li>
-          </ul>
-        </div>
-        <div>
-          <button className="btn btn-ui">Próxima</button>
-        </div>
+            <div>
+              <h4>{state.apiData[state.currentQuestion].question}</h4>
+              <ul className="options">
+                {state.apiData[state.currentQuestion].options.map((option, index) =>
+                  <li key={option}>
+                    <button className={`btn btn-option ${state.userAnswer === index ? 'answer' : ''}`} onClick={() => handleClickAnswer(index)}>{option}</button>
+                  </li>)}
+              </ul>
+            </div>
+            <div>
+              <button className="btn btn-ui">Próxima</button>
+            </div>
           </>
         }
       </main>
