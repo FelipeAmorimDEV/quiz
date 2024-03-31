@@ -17,23 +17,27 @@ const reducer = (state, action) => {
   }
 
   if (action.type === 'clicked_next_question') {
+    const isLastQuestion = state.currentQuestion === state.apiData.length - 1 
+
     return { 
       ...state, 
-      currentQuestion: state.currentQuestion === state.apiData.length - 1 
+      currentQuestion: isLastQuestion
         ? 0 
         : state.currentQuestion + 1, 
       userAnswer: null,
-      userScore: state.currentQuestion === state.apiData.length - 1 
-      ? 0
-      : state.userScore
-    }
+      shouldShowResult: isLastQuestion
+  }
+  }
+
+  if (action.type === 'reset_quiz') {
+    return {...state, userAnswer: null, shouldShowResult: false, userScore: 0}
   }
 
   return state
 }
 
 
-const initialState = { apiData: [], currentQuestion: 0, userAnswer: null, userScore: 0 }
+const initialState = { apiData: [], currentQuestion: 0, userAnswer: null, userScore: 0, shouldShowResult: false }
 const App = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
@@ -46,12 +50,21 @@ const App = () => {
 
   const handleClickAnswer = option => dispatch({ type: 'user_selected_answer', payload: option })
   const handleClickNextQuestion = () => dispatch({ type: 'clicked_next_question' })
+  const handleClickResetQuiz = () => dispatch({ type: 'reset_quiz' })
 
   const userHasAnswered = state.userAnswer !== null
   return (
     <div className="app">
       <main className="main">
-        {state.apiData.length > 0 &&
+        {state.shouldShowResult && 
+          <>
+            <div className="result">
+              <span>Você fez 10 pontos de 50 (20%)</span>
+            </div>
+            <button className="btn btn-ui" onClick={handleClickResetQuiz}>Reiniciar Quiz</button>
+          </>
+        }
+        {state.apiData.length > 0 && !state.shouldShowResult &&
           <>
             <div>
               <h4>{state.apiData[state.currentQuestion].question}</h4>
