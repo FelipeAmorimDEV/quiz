@@ -45,7 +45,9 @@ const App = () => {
                             : 'wrong'
                           : ''}
                         `}
-                      onClick={() => handleClickAnswer(index)}>
+                      onClick={() => handleClickAnswer(index)}
+                      disabled={state.userAnswer !== null}
+                      >
                       {option}
                     </button>
                   </li>)}
