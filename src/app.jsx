@@ -72,24 +72,27 @@ const App = () => {
             <div>
               <h4>{state.apiData[state.currentQuestion].question}</h4>
               <ul className="options">
-                {state.apiData[state.currentQuestion].options.map((option, index) =>
-                  <li key={option}>
-                    <button
-                      className={`
-                        btn 
-                        btn-option ${state.userAnswer === index ? 'answer' : ''}
-                        ${userHasAnswered
-                          ? state.apiData[state.currentQuestion].correctOption === index
-                            ? 'correct'
-                            : 'wrong'
-                          : ''}
-                        `}
-                      onClick={() => handleClickAnswer(index)}
-                      disabled={userHasAnswered}
-                    >
-                      {option}
-                    </button>
-                  </li>)}
+                {state.apiData[state.currentQuestion].options.map((option, index) => {
+                  const answerClass = state.userAnswer === index ? 'answer' : ''
+                  const correctOrWrongClass = userHasAnswered
+                    ? state.apiData[state.currentQuestion].correctOption === index
+                      ? 'correct'
+                      : 'wrong'
+                    : ''
+
+                  return (
+                    <li key={option}>
+                      <button
+                        className={`btn btn-option ${answerClass} ${correctOrWrongClass}`}
+                        onClick={() => handleClickAnswer(index)}
+                        disabled={userHasAnswered}
+                      >
+                        {option}
+                      </button>
+                    </li>
+                  )
+                }
+                )}
               </ul>
             </div>
             <div>
