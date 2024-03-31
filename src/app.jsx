@@ -7,14 +7,21 @@ const reducer = (state, action) => {
   }
 
   if (action.type === 'user_selected_answer') {
-    return { ...state, userAnswer: action.payload }
+    return { 
+      ...state, 
+      userAnswer: action.payload, 
+      userScore: state.apiData[state.currentQuestion].correctOption === action.payload 
+        ? state.apiData[state.currentQuestion].points 
+        : state.userScore }
   }
 
   return state
 }
 
+
+const initialState = { apiData: [], currentQuestion: 0, userAnswer: null, userScore: 0 }
 const App = () => {
-  const [state, dispatch] = useReducer(reducer, { apiData: [], currentQuestion: 0, userAnswer: null })
+  const [state, dispatch] = useReducer(reducer, initialState)
 
   useEffect(() => {
     fetch('https://raw.githubusercontent.com/FelipeAmorimDEV/fake-data/main/videogame-questions.json')
