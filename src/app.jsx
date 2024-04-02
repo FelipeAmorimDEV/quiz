@@ -1,4 +1,4 @@
-import { useReducer, useState } from "react"
+import { useReducer, useState, useRef } from "react"
 import { useEffect } from "react"
 
 const Timer = ({ seconds, onTimerFinished }) => {
@@ -75,7 +75,10 @@ const App = () => {
       .catch(error => alert(error.message))
   }, [])
 
-  const handleClickAnswer = option => dispatch({ type: 'user_selected_answer', payload: option })
+  const handleClickAnswer = option => {
+    dispatch({ type: 'user_selected_answer', payload: option })
+    progressValueRef.current += 1
+  }
   const handleClickNextQuestion = () => dispatch({ type: 'clicked_next_question' })
   const handleClickResetQuiz = () => dispatch({ type: 'reset_quiz' })
   const timerFinished = () => dispatch({ type: 'ended_timer' })
@@ -83,6 +86,7 @@ const App = () => {
   const maxScore = state.apiData.reduce((acc, question) => acc + question.points, 0)
   const percentage = (state.userScore * 100) / maxScore
   const totalSeconds = state.apiData.length * 30
+  const progressValueRef = useRef(0)
 
   const userHasAnswered = state.userAnswer !== null
   return (
@@ -102,6 +106,11 @@ const App = () => {
         }
         {state.apiData.length > 0 && !state.shouldShowResult &&
           <>
+            <label className="progress">
+              <progress value={progressValueRef.current} max={5}/>
+              <span>Questão <strong>{state.currentQuestion + 1}</strong> / {state.apiData.length}</span>
+              <span><strong>{state.userScore}</strong> / {state.apiData.length * state.apiData[0].points}</span>
+            </label>
             <div>
               <h4>{state.apiData[state.currentQuestion].question}</h4>
               <ul className="options">
