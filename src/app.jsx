@@ -1,6 +1,29 @@
 import { useReducer, useState } from "react"
 import { useEffect } from "react"
 
+const Timer = ({ seconds, onTimerFinished }) => {
+  const futureDate = new Date()
+  const finalTimeInMillis = futureDate.setTime(futureDate.getTime() + seconds * 1000)
+
+  const [timer, setTimer] = useState({ distanceInMillis: 0, finalTimeInMillis })
+
+  useEffect(() => {
+    const diferenceInMillis = timer.finalTimeInMillis - new Date()
+    const id = setInterval(() => setTimer(t => ({ ...t, distanceInMillis: diferenceInMillis })), 1000)
+    if (diferenceInMillis <= 0) {
+      clearInterval(id)
+      onTimerFinished()
+    }
+
+    return () => clearInterval(id)
+  }, [onTimerFinished, timer])
+
+  const diferenceInMinutes = Math.floor(timer.distanceInMillis / (1000 * 60))
+  const diferenceInSeconds = Math.floor((timer.distanceInMillis % (1000 * 60)) / 1000)
+
+  return <p>{`${String(diferenceInMinutes).padStart(2, '0')}:${String(diferenceInSeconds).padStart(2, '0')}`}</p>
+}
+
 const reducer = (state, action) => {
   if (action.type === 'fetch_questions') {
     return { ...state, apiData: action.payload }
@@ -33,31 +56,11 @@ const reducer = (state, action) => {
     return { ...state, userAnswer: null, shouldShowResult: false, userScore: 0 }
   }
 
+  if (action.type === 'ended_timer') {
+    return {...state, shouldShowResult: true}
+  }
+
   return state
-}
-
-
-
-const Timer = ({ seconds }) => {
-  const futureDate = new Date()
-  const finalTimeInMillis = futureDate.setTime(futureDate.getTime() + seconds * 1000)
-
-  const [timer, setTimer] = useState({ distanceInMillis: 0, finalTimeInMillis })
-
-  useEffect(() => {
-    const diferenceInMillis = timer.finalTimeInMillis - new Date()
-    const id = setInterval(() => setTimer(t => ({ ...t, distanceInMillis: diferenceInMillis })), 1000)
-    if (diferenceInMillis <= 0) {
-      clearInterval(id)
-    }
-
-    return () => clearInterval(id)
-  }, [timer])
-
-  const diferenceInMinutes = Math.floor(timer.distanceInMillis / (1000 * 60))
-  const diferenceInSeconds = Math.floor((timer.distanceInMillis % (1000 * 60)) / 1000)
-
-  return <p>{`${String(diferenceInMinutes).padStart(2, '0')}:${String(diferenceInSeconds).padStart(2, '0')}`}</p>
 }
 
 const initialState = { apiData: [], currentQuestion: 0, userAnswer: null, userScore: 0, shouldShowResult: false }
@@ -75,9 +78,11 @@ const App = () => {
   const handleClickAnswer = option => dispatch({ type: 'user_selected_answer', payload: option })
   const handleClickNextQuestion = () => dispatch({ type: 'clicked_next_question' })
   const handleClickResetQuiz = () => dispatch({ type: 'reset_quiz' })
+  const timerFinished = () => dispatch({ type: 'ended_timer' })
 
   const maxScore = state.apiData.reduce((acc, question) => acc + question.points, 0)
   const percentage = (state.userScore * 100) / maxScore
+  const totalSeconds = state.apiData.length * 30
 
   const userHasAnswered = state.userAnswer !== null
   return (
@@ -129,7 +134,7 @@ const App = () => {
                   {state.currentQuestion === state.apiData.length - 1 ? 'Finalizar' : 'Próxima'}
                 </button>}
               <div className="timer">
-                <Timer seconds={120} />
+                <Timer seconds={totalSeconds} onTimerFinished={timerFinished}/>
               </div>
             </div>
           </>
