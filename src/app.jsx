@@ -80,13 +80,24 @@ const App = () => {
     progressValueRef.current += 1
   }
   const handleClickNextQuestion = () => dispatch({ type: 'clicked_next_question' })
-  const handleClickResetQuiz = () => dispatch({ type: 'reset_quiz' })
+  const handleClickResetQuiz = () => {
+    dispatch({ type: 'reset_quiz' })
+    progressValueRef.current = 0
+  }
   const timerFinished = () => dispatch({ type: 'ended_timer' })
 
   const maxScore = state.apiData.reduce((acc, question) => acc + question.points, 0)
   const percentage = (state.userScore * 100) / maxScore
   const totalSeconds = state.apiData.length * 30
   const progressValueRef = useRef(0)
+  const resultMsg = {
+    '0': "😥 Poxa, você",
+    '20': "😑 Você fez",
+    '40': "😐 Opa! Você",
+    '60': "😉 Legal! Você",
+    '80': "😎 Muito bom! Você",
+    '100': "🏆 Caramba! Você"
+  }[`${percentage}`]
 
   const userHasAnswered = state.userAnswer !== null
   return (
@@ -99,7 +110,7 @@ const App = () => {
         {state.shouldShowResult &&
           <>
             <div className="result">
-              <span>Você fez {state.userScore} pontos de {maxScore} ({percentage}%)</span>
+              <span>{resultMsg} {state.userScore} pontos de {maxScore} ({percentage}%)</span>
             </div>
             <button className="btn btn-ui" onClick={handleClickResetQuiz}>Reiniciar Quiz</button>
           </>
@@ -109,7 +120,7 @@ const App = () => {
             <label className="progress">
               <progress value={progressValueRef.current} max={5}/>
               <span>Questão <strong>{state.currentQuestion + 1}</strong> / {state.apiData.length}</span>
-              <span><strong>{state.userScore}</strong> / {state.apiData.length * state.apiData[0].points}</span>
+              <span><strong>{state.userScore}</strong> / {maxScore}</span>
             </label>
             <div>
               <h4>{state.apiData[state.currentQuestion].question}</h4>
