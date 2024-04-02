@@ -1,4 +1,4 @@
-import { useReducer } from "react"
+import { useReducer, useState } from "react"
 import { useEffect } from "react"
 
 const reducer = (state, action) => {
@@ -34,6 +34,30 @@ const reducer = (state, action) => {
   }
 
   return state
+}
+
+
+
+const Timer = ({ seconds }) => {
+  const futureDate = new Date()
+  const finalTimeInMillis = futureDate.setTime(futureDate.getTime() + seconds * 1000)
+
+  const [timer, setTimer] = useState({ distanceInMillis: 0, finalTimeInMillis })
+
+  useEffect(() => {
+    const diferenceInMillis = timer.finalTimeInMillis - new Date()
+    const id = setInterval(() => setTimer(t => ({ ...t, distanceInMillis: diferenceInMillis })), 1000)
+    if (diferenceInMillis <= 0) {
+      clearInterval(id)
+    }
+
+    return () => clearInterval(id)
+  }, [timer])
+
+  const diferenceInMinutes = Math.floor(timer.distanceInMillis / (1000 * 60))
+  const diferenceInSeconds = Math.floor((timer.distanceInMillis % (1000 * 60)) / 1000)
+
+  return <p>{`${String(diferenceInMinutes).padStart(2, '0')}:${String(diferenceInSeconds).padStart(2, '0')}`}</p>
 }
 
 const initialState = { apiData: [], currentQuestion: 0, userAnswer: null, userScore: 0, shouldShowResult: false }
@@ -104,6 +128,9 @@ const App = () => {
                 <button className="btn btn-ui" onClick={handleClickNextQuestion}>
                   {state.currentQuestion === state.apiData.length - 1 ? 'Finalizar' : 'Próxima'}
                 </button>}
+              <div className="timer">
+                <Timer seconds={120} />
+              </div>
             </div>
           </>
         }
