@@ -1,46 +1,46 @@
-import { useReducer, useState, useRef } from "react"
+import { useReducer, useState } from "react"
 import { useEffect } from "react"
 
 const Timer = ({ seconds, onTimerFinished }) => {
-  const futureDate = new Date()
-  const finalTimeInMillis = futureDate.setTime(futureDate.getTime() + seconds * 1000)
+  const targetDate = new Date()
+  const endTimeInMillis = targetDate.setTime(targetDate.getTime() + seconds * 1000)
 
-  const [timer, setTimer] = useState({ distanceInMillis: 0, finalTimeInMillis })
+  const [timerState, setTimerState] = useState({ distanceInMillis: 0, endTimeInMillis })
 
   useEffect(() => {
-    const diferenceInMillis = timer.finalTimeInMillis - new Date()
-    const id = setInterval(() => setTimer(t => ({ ...t, distanceInMillis: diferenceInMillis })), 1000)
-    if (diferenceInMillis <= 0) {
+    const differenceInMillis = timerState.endTimeInMillis - new Date()
+    const id = setInterval(() => setTimerState(t => ({ ...t, distanceInMillis: differenceInMillis })), 1000)
+    if (differenceInMillis <= 0) {
       clearInterval(id)
       onTimerFinished()
     }
 
     return () => clearInterval(id)
-  }, [onTimerFinished, timer])
+  }, [onTimerFinished, timerState])
 
-  const diferenceInMinutes = Math.floor(timer.distanceInMillis / (1000 * 60))
-  const diferenceInSeconds = Math.floor((timer.distanceInMillis % (1000 * 60)) / 1000)
+  const differenceInMinutes = Math.floor(timerState.distanceInMillis / (1000 * 60))
+  const differenceInSeconds = Math.floor((timerState.distanceInMillis % (1000 * 60)) / 1000)
 
-  return <p>{`${String(diferenceInMinutes).padStart(2, '0')}:${String(diferenceInSeconds).padStart(2, '0')}`}</p>
+  return <p>{`${String(differenceInMinutes).padStart(2, '0')}:${String(differenceInSeconds).padStart(2, '0')}`}</p>
 }
 
-const reducer = (state, action) => {
-  if (action.type === 'fetch_questions') {
-    return { ...state, apiData: action.payload }
+const quizReducer = (state, action) => {
+  if (action.type === 'FETCH_QUESTIONS') {
+    return { ...state, quizData: action.payload }
   }
 
-  if (action.type === 'user_selected_answer') {
+  if (action.type === 'USER_SELECTED_ANSWER') {
     return {
       ...state,
       userAnswer: action.payload,
-      userScore: state.apiData[state.currentQuestion].correctOption === action.payload
-        ? state.userScore + state.apiData[state.currentQuestion].points
+      userScore: state.quizData[state.currentQuestion].correctOption === action.payload
+        ? state.userScore + state.quizData[state.currentQuestion].points
         : state.userScore
     }
   }
 
-  if (action.type === 'clicked_next_question') {
-    const isLastQuestion = state.currentQuestion === state.apiData.length - 1
+  if (action.type === 'CLICKED_NEXT_QUESTION') {
+    const isLastQuestion = state.currentQuestion === state.quizData.length - 1
 
     return {
       ...state,
@@ -52,37 +52,37 @@ const reducer = (state, action) => {
     }
   }
 
-  if (action.type === 'reset_quiz') {
+  if (action.type === 'RESET_QUIZ') {
     return { ...state, userAnswer: null, shouldShowResult: false, userScore: 0 }
   }
 
-  if (action.type === 'ended_timer') {
+  if (action.type === 'ENDED_TIMER') {
     return {...state, shouldShowResult: true}
   }
 
   return state
 }
 
-const initialState = { apiData: [], currentQuestion: 0, userAnswer: null, userScore: 0, shouldShowResult: false }
+const initialState = { quizData: [], currentQuestion: 0, userAnswer: null, userScore: 0, shouldShowResult: false }
 
 const App = () => {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [state, dispatch] = useReducer(quizReducer, initialState)
 
   useEffect(() => {
     fetch('https://raw.githubusercontent.com/FelipeAmorimDEV/fake-data/main/videogame-questions.json')
-      .then(r => r.json())
-      .then(data => dispatch({ type: 'fetch_questions', payload: data }))
+      .then(response => response.json())
+      .then(data => dispatch({ type: 'FETCH_QUESTIONS', payload: data }))
       .catch(error => alert(error.message))
   }, [])
 
-  const handleClickAnswer = option => dispatch({ type: 'user_selected_answer', payload: option })
-  const handleClickNextQuestion = () => dispatch({ type: 'clicked_next_question' })
-  const handleClickResetQuiz = () => dispatch({ type: 'reset_quiz' })
-  const timerFinished = () => dispatch({ type: 'ended_timer' })
+  const handleAnswerClick = option => dispatch({ type: 'USER_SELECTED_ANSWER', payload: option })
+  const handleNextQuestionClick = () => dispatch({ type: 'CLICKED_NEXT_QUESTION' })
+  const handleResetQuizClick = () => dispatch({ type: 'RESET_QUIZ' })
+  const handleTimerFinished = () => dispatch({ type: 'ENDED_TIMER' })
 
-  const maxScore = state.apiData.reduce((acc, question) => acc + question.points, 0)
+  const maxScore = state.quizData.reduce((acc, question) => acc + question.points, 0)
   const percentage = (state.userScore * 100) / maxScore
-  const totalSeconds = state.apiData.length * 30
+  const totalSeconds = state.quizData.length * 30
   const userHasAnswered = state.userAnswer !== null
   const answerProgress = userHasAnswered  ? state.currentQuestion + 1 : state.currentQuestion
   const resultMsg = {
@@ -106,23 +106,23 @@ const App = () => {
             <div className="result">
               <span>{resultMsg} {state.userScore} pontos de {maxScore} ({percentage}%)</span>
             </div>
-            <button className="btn btn-ui" onClick={handleClickResetQuiz}>Reiniciar Quiz</button>
+            <button className="btn btn-ui" onClick={handleResetQuizClick}>Reiniciar Quiz</button>
           </>
         }
-        {state.apiData.length > 0 && !state.shouldShowResult &&
+        {state.quizData.length > 0 && !state.shouldShowResult &&
           <>
             <label className="progress">
               <progress value={answerProgress} max={5}/>
-              <span>Questão <strong>{state.currentQuestion + 1}</strong> / {state.apiData.length}</span>
+              <span>Questão <strong>{state.currentQuestion + 1}</strong> / {state.quizData.length}</span>
               <span><strong>{state.userScore}</strong> / {maxScore}</span>
             </label>
             <div>
-              <h4>{state.apiData[state.currentQuestion].question}</h4>
+              <h4>{state.quizData[state.currentQuestion].question}</h4>
               <ul className="options">
-                {state.apiData[state.currentQuestion].options.map((option, index) => {
+                {state.quizData[state.currentQuestion].options.map((option, index) => {
                   const answerClass = state.userAnswer === index ? 'answer' : ''
                   const correctOrWrongClass = userHasAnswered
-                    ? state.apiData[state.currentQuestion].correctOption === index
+                    ? state.quizData[state.currentQuestion].correctOption === index
                       ? 'correct'
                       : 'wrong'
                     : ''
@@ -131,7 +131,7 @@ const App = () => {
                     <li key={option}>
                       <button
                         className={`btn btn-option ${answerClass} ${correctOrWrongClass}`}
-                        onClick={() => handleClickAnswer(index)}
+                        onClick={() => handleAnswerClick(index)}
                         disabled={userHasAnswered}
                       >
                         {option}
@@ -144,11 +144,11 @@ const App = () => {
             </div>
             <div>
               {userHasAnswered &&
-                <button className="btn btn-ui" onClick={handleClickNextQuestion}>
-                  {state.currentQuestion === state.apiData.length - 1 ? 'Finalizar' : 'Próxima'}
+                <button className="btn btn-ui" onClick={handleNextQuestionClick}>
+                  {state.currentQuestion === state.quizData.length - 1 ? 'Finalizar' : 'Próxima'}
                 </button>}
               <div className="timer">
-                <Timer seconds={totalSeconds} onTimerFinished={timerFinished}/>
+                <Timer seconds={totalSeconds} onTimerFinished={handleTimerFinished}/>
               </div>
             </div>
           </>
