@@ -1,27 +1,34 @@
-import { useReducer, useState } from "react"
+import { useReducer, useState, useRef } from "react"
 import { useEffect } from "react"
 
 const Timer = ({ seconds, onTimerFinished }) => {
-  const targetDate = new Date()
-  const endTimeInMillis = targetDate.setTime(targetDate.getTime() + seconds * 1000)
-
-  const [timerState, setTimerState] = useState({ distanceInMillis: 0, endTimeInMillis })
+  const [timeRemaining, setTimeRemaining] = useState(seconds);
+  const lastRenderTimeRef = useRef(new Date().getTime());
 
   useEffect(() => {
-    const differenceInMillis = timerState.endTimeInMillis - new Date()
-    const id = setInterval(() => setTimerState(t => ({ ...t, distanceInMillis: differenceInMillis })), 1000)
-    if (differenceInMillis <= 0) {
-      clearInterval(id)
-      onTimerFinished()
-    }
+    const timerId = setTimeout(() => {
+      const currentTime = new Date().getTime();
+      const timeElapsed = currentTime - lastRenderTimeRef.current;
+      const newTimeRemaining = Math.max(0, timeRemaining - Math.floor(timeElapsed / 1000));
+      setTimeRemaining(newTimeRemaining);
+      lastRenderTimeRef.current = currentTime;
 
-    return () => clearInterval(id)
-  }, [onTimerFinished, timerState])
+      if (newTimeRemaining === 0) {
+        onTimerFinished();
+      }
+    }, 1000);
 
-  const differenceInMinutes = Math.floor(timerState.distanceInMillis / (1000 * 60))
-  const differenceInSeconds = Math.floor((timerState.distanceInMillis % (1000 * 60)) / 1000)
+    return () => clearTimeout(timerId);
+  }, [timeRemaining, onTimerFinished]);
 
-  return <p>{`${String(differenceInMinutes).padStart(2, '0')}:${String(differenceInSeconds).padStart(2, '0')}`}</p>
+  const minutes = Math.floor(timeRemaining / 60);
+  const secondsRemaining = timeRemaining % 60;
+
+  return (
+    <p>
+      {`${String(minutes).padStart(2, '0')}:${String(secondsRemaining).padStart(2, '0')}`}
+    </p>
+  )
 }
 
 const quizReducer = (state, action) => {
@@ -53,17 +60,21 @@ const quizReducer = (state, action) => {
   }
 
   if (action.type === 'RESET_QUIZ') {
-    return { ...state, userAnswer: null, shouldShowResult: false, userScore: 0 }
+    return { ...state, userAnswer: null, shouldShowResult: false, userScore: 0, shouldShowMenu: true }
   }
 
   if (action.type === 'ENDED_TIMER') {
     return {...state, shouldShowResult: true}
   }
 
+  if (action.type === 'STARTED_QUIZ') {
+    return {... state, shouldShowMenu: false }
+  }
+
   return state
 }
 
-const initialState = { quizData: [], currentQuestion: 0, userAnswer: null, userScore: 0, shouldShowResult: false }
+const initialState = { quizData: [], currentQuestion: 0, userAnswer: null, userScore: 0, shouldShowResult: false, shouldShowMenu: true }
 
 const App = () => {
   const [state, dispatch] = useReducer(quizReducer, initialState)
@@ -79,6 +90,7 @@ const App = () => {
   const handleNextQuestionClick = () => dispatch({ type: 'CLICKED_NEXT_QUESTION' })
   const handleResetQuizClick = () => dispatch({ type: 'RESET_QUIZ' })
   const handleTimerFinished = () => dispatch({ type: 'ENDED_TIMER' })
+  const handleStartQuizClick = () => dispatch({ type: 'STARTED_QUIZ'})
 
   const maxScore = state.quizData.reduce((acc, question) => acc + question.points, 0)
   const percentage = (state.userScore * 100) / maxScore
@@ -101,7 +113,14 @@ const App = () => {
         <h1>Quiz dos Videogames</h1>
       </header>
       <main className="main">
-        {state.shouldShowResult &&
+        {state.shouldShowMenu && 
+          <div className="start">
+            <h2>Bem vindo(a) ao Quiz dos Videogames!</h2>
+            <h3>{state.quizData.length} questões pra te testar</h3>
+            <button className="btn" onClick={handleStartQuizClick}>Bora começar</button>
+          </div>
+        }
+        {state.shouldShowResult && !state.shouldShowMenu &&
           <>
             <div className="result">
               <span>{resultMsg} {state.userScore} pontos de {maxScore} ({percentage}%)</span>
@@ -109,7 +128,7 @@ const App = () => {
             <button className="btn btn-ui" onClick={handleResetQuizClick}>Reiniciar Quiz</button>
           </>
         }
-        {state.quizData.length > 0 && !state.shouldShowResult &&
+        {state.quizData.length > 0 && !state.shouldShowResult && !state.shouldShowMenu &&
           <>
             <label className="progress">
               <progress value={answerProgress} max={5}/>
