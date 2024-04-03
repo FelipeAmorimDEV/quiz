@@ -7,47 +7,30 @@ import { ProgressIndicator } from './components/progress-indicator'
 import { QuizComponent } from './components/quiz-component'
 
 const quizReducer = (state, action) => {
-  if (action.type === 'FETCH_QUESTIONS') {
-    return { ...state, quizData: action.payload }
-  }
-
-  if (action.type === 'USER_SELECTED_ANSWER') {
-    return {
+  const isLastQuestion = state.currentQuestion === state.quizData.length - 1
+  return ({
+    'FETCH_QUESTIONS': { ...state, quizData: action?.payload },
+    'USER_SELECTED_ANSWER': {
       ...state,
       userAnswer: action.payload,
-      userScore: state.quizData[state.currentQuestion].correctOption === action.payload
+      userScore: state.quizData[state.currentQuestion]?.correctOption === action.payload
         ? state.userScore + state.quizData[state.currentQuestion].points
         : state.userScore
-    }
-  }
-
-  if (action.type === 'CLICKED_NEXT_QUESTION') {
-    const isLastQuestion = state.currentQuestion === state.quizData.length - 1
-
-    return {
+    },
+    'CLICKED_NEXT_QUESTION': {
       ...state,
       currentQuestion: isLastQuestion
         ? 0
         : state.currentQuestion + 1,
       userAnswer: null,
       appStatus: isLastQuestion ? 'finished' : 'playing'
-    }
-  }
-
-  if (action.type === 'RESET_QUIZ') {
-    return { ...state, userAnswer: null, userScore: 0, currentQuestion: 0, appStatus: 'readyToPlay' }
-  }
-
-  if (action.type === 'ENDED_TIMER') {
-    return { ...state, appStatus: 'finished' }
-  }
-
-  if (action.type === 'STARTED_QUIZ') {
-    return { ...state, appStatus: 'playing' }
-  }
-
-  return state
+    },
+    'RESET_QUIZ': { ...state, userAnswer: null, userScore: 0, currentQuestion: 0, appStatus: 'readyToPlay' },
+    'ENDED_TIMER': { ...state, appStatus: 'finished' },
+    'STARTED_QUIZ': { ...state, appStatus: 'playing' }
+  })[action.type] || state
 }
+
 
 const initialState = { quizData: [], currentQuestion: 0, userAnswer: null, userScore: 0, appStatus: 'readyToPlay' }
 
