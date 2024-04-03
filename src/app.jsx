@@ -6,7 +6,14 @@ import { QuizComponent } from '@/components/quiz-component'
 import { useQuiz } from "@/hooks/use-quiz"
 
 const App = () => {
-  const { state, handlers } = useQuiz()
+  const {
+    state,
+    handleAnswerClick,
+    handleNextQuestionClick,
+    handleStartQuizClick,
+    handleResetQuizClick,
+    handleTimerFinished
+  } = useQuiz()
 
   const maxScore = state.quizData.reduce((acc, question) => acc + question.points, 0);
   const userHasAnswered = state.userAnswer !== null;
@@ -14,9 +21,9 @@ const App = () => {
   const renderContent = () => {
     switch (state.appStatus) {
       case 'readyToPlay':
-        return <StartMenu onStartQuizClick={handlers.handleStartQuizClick} state={state} />;
+        return <StartMenu onStartQuizClick={handleStartQuizClick} state={state} />;
       case 'finished':
-        return <ResultScreen onResetQuizClick={handlers.handleResetQuizClick} state={state} maxScore={maxScore} />;
+        return <ResultScreen onResetQuizClick={handleResetQuizClick} state={state} maxScore={maxScore} />;
       case 'playing':
         return (
           <>
@@ -24,9 +31,9 @@ const App = () => {
             <QuizComponent
               state={state}
               userHasAnswered={userHasAnswered}
-              onAnswerClick={handlers.handleAnswerClick}
-              onNextQuestionClick={handlers.handleNextQuestionClick}
-              onTimerFinished={handlers.handleTimerFinished}
+              onAnswerClick={handleAnswerClick}
+              onNextQuestionClick={handleNextQuestionClick}
+              onTimerFinished={handleTimerFinished}
             />
           </>
         );

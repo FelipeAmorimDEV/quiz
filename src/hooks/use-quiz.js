@@ -1,4 +1,4 @@
-import { useReducer, useEffect } from 'react'
+import { useReducer, useEffect, useCallback } from 'react'
 
 const quizReducer = (state, action) => {
   const isLastQuestion = state.currentQuestion === state.quizData.length - 1
@@ -37,15 +37,13 @@ const useQuiz = () => {
       .catch(error => alert(error.message))
   }, [])
 
-  const handlers = {
-    handleAnswerClick: option => dispatch({ type: 'USER_SELECTED_ANSWER', payload: option }),
-    handleNextQuestionClick: () => dispatch({ type: 'CLICKED_NEXT_QUESTION' }),
-    handleResetQuizClick: () => dispatch({ type: 'RESET_QUIZ' }),
-    handleTimerFinished: () => dispatch({ type: 'ENDED_TIMER' }),
-    handleStartQuizClick: () => dispatch({ type: 'STARTED_QUIZ' })
-  }
+  const handleAnswerClick = option => dispatch({ type: 'USER_SELECTED_ANSWER', payload: option })
+  const handleNextQuestionClick = () => dispatch({ type: 'CLICKED_NEXT_QUESTION' })
+  const handleResetQuizClick = () => dispatch({ type: 'RESET_QUIZ' })
+  const handleTimerFinished = useCallback(() => dispatch({ type: 'ENDED_TIMER' }), [])
+  const handleStartQuizClick = () => dispatch({ type: 'STARTED_QUIZ' })
 
-  return { state, handlers }
+  return { state, handleAnswerClick, handleNextQuestionClick, handleResetQuizClick, handleTimerFinished, handleStartQuizClick }
 }
 
 export { useQuiz }
