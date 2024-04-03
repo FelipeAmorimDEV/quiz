@@ -30,26 +30,26 @@ const quizReducer = (state, action) => {
         ? 0
         : state.currentQuestion + 1,
       userAnswer: null,
-      shouldShowResult: isLastQuestion
+      appStatus: isLastQuestion ? 'finished' : 'playing'
     }
   }
 
   if (action.type === 'RESET_QUIZ') {
-    return { ...state, userAnswer: null, shouldShowResult: false, userScore: 0, shouldShowMenu: true, currentQuestion: 0 }
+    return { ...state, userAnswer: null, userScore: 0, currentQuestion: 0, appStatus: 'readyToPlay' }
   }
 
   if (action.type === 'ENDED_TIMER') {
-    return { ...state, shouldShowResult: true }
+    return { ...state, appStatus: 'finished' }
   }
 
   if (action.type === 'STARTED_QUIZ') {
-    return { ...state, shouldShowMenu: false }
+    return { ...state, appStatus: 'playing' }
   }
 
   return state
 }
 
-const initialState = { quizData: [], currentQuestion: 0, userAnswer: null, userScore: 0, shouldShowResult: false, shouldShowMenu: true }
+const initialState = { quizData: [], currentQuestion: 0, userAnswer: null, userScore: 0, appStatus: 'readyToPlay' }
 
 const App = () => {
   const [state, dispatch] = useReducer(quizReducer, initialState)
@@ -68,19 +68,24 @@ const App = () => {
   const handleStartQuizClick = () => dispatch({ type: 'STARTED_QUIZ' })
 
   const maxScore = state.quizData.reduce((acc, question) => acc + question.points, 0)
-
   const userHasAnswered = state.userAnswer !== null
 
   return (
     <div className="app">
       <AppHeader />
       <main className="main">
-        {state.shouldShowMenu && <StartMenu onStartQuizClick={handleStartQuizClick} state={state} />}
-        {state.shouldShowResult && !state.shouldShowMenu && <ResultScreen onResetQuizClick={handleResetQuizClick} state={state} maxScore={maxScore} />}
-        {state.quizData.length > 0 && !state.shouldShowResult && !state.shouldShowMenu &&
+        {state.appStatus === 'readyToPlay' && <StartMenu onStartQuizClick={handleStartQuizClick} state={state} />}
+        {state.appStatus === 'finished' && <ResultScreen onResetQuizClick={handleResetQuizClick} state={state} maxScore={maxScore} />}
+        {state.appStatus === 'playing' && state.quizData.length > 0 &&
           <>
             <ProgressIndicator state={state} maxScore={maxScore} userHasAnswered={userHasAnswered} />
-            <QuizComponent state={state} userHasAnswered={userHasAnswered} onAnswerClick={handleAnswerClick} onNextQuestionClick={handleNextQuestionClick} onTimerFinished={handleTimerFinished} />
+            <QuizComponent
+              state={state}
+              userHasAnswered={userHasAnswered}
+              onAnswerClick={handleAnswerClick}
+              onNextQuestionClick={handleNextQuestionClick}
+              onTimerFinished={handleTimerFinished}
+            />
           </>
         }
       </main>
