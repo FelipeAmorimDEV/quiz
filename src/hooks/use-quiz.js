@@ -1,4 +1,4 @@
-import { useReducer, useEffect } from "react"
+import { useReducer, useEffect } from 'react'
 
 const quizReducer = (state, action) => {
   const isLastQuestion = state.currentQuestion === state.quizData.length - 1

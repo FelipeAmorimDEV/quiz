@@ -1,4 +1,4 @@
-import { CountdownTimer } from "./countdown-timer"
+import { CountdownTimer } from "@/components/countdown-timer"
 
 const QuizComponent = ({ state, userHasAnswered, onAnswerClick, onNextQuestionClick, onTimerFinished }) => {
   const totalSeconds = state.quizData.length * 30

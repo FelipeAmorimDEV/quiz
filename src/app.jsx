@@ -1,11 +1,9 @@
-import { useReducer, useEffect } from "react"
-
-import { AppHeader } from './components/app-header'
-import { StartMenu } from './components/start-menu'
-import { ResultScreen } from './components/result-screen'
-import { ProgressIndicator } from './components/progress-indicator'
-import { QuizComponent } from './components/quiz-component'
-import { useQuiz } from "./hooks/use-quiz"
+import { AppHeader } from '@/components/app-header'
+import { StartMenu } from '@/components/start-menu'
+import { ResultScreen } from '@/components/result-screen'
+import { ProgressIndicator } from '@/components/progress-indicator'
+import { QuizComponent } from '@/components/quiz-component'
+import { useQuiz } from "@/hooks/use-quiz"
 
 const App = () => {
   const { state, handlers } = useQuiz()
