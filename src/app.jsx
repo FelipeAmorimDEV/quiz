@@ -64,17 +64,113 @@ const quizReducer = (state, action) => {
   }
 
   if (action.type === 'ENDED_TIMER') {
-    return {...state, shouldShowResult: true}
+    return { ...state, shouldShowResult: true }
   }
 
   if (action.type === 'STARTED_QUIZ') {
-    return {... state, shouldShowMenu: false }
+    return { ...state, shouldShowMenu: false }
   }
 
   return state
 }
 
 const initialState = { quizData: [], currentQuestion: 0, userAnswer: null, userScore: 0, shouldShowResult: false, shouldShowMenu: true }
+
+const Header = () => {
+  return (
+    <header className="app-header">
+      <img src="logo-quiz-videogames.png" alt="Logo do Quiz de Videogammes" />
+      <h1>Quiz dos Videogames</h1>
+    </header>
+  )
+}
+
+const Menu = ({ onStartQuizClick, state }) => {
+  return (
+    <div className="start">
+      <h2>Bem vindo(a) ao Quiz dos Videogames!</h2>
+      <h3>{state.quizData.length} questões pra te testar</h3>
+      <button className="btn" onClick={onStartQuizClick}>Bora começar</button>
+    </div>
+  )
+}
+
+const ScoreScreen = ({ onResetQuizClick, state, maxScore }) => {
+  const percentage = (state.userScore * 100) / maxScore
+  const resultMsg = {
+    '0': "😥 Poxa, você",
+    '20': "😑 Você fez",
+    '40': "😐 Opa! Você",
+    '60': "😉 Legal! Você",
+    '80': "😎 Muito bom! Você",
+    '100': "🏆 Caramba! Você"
+  }[`${percentage}`]
+
+  return (
+    <>
+      <div className="result">
+        <span>{resultMsg} {state.userScore} pontos de {maxScore} ({percentage}%)</span>
+      </div>
+      <button className="btn btn-ui" onClick={onResetQuizClick}>Reiniciar Quiz</button>
+    </>
+  )
+}
+
+const ProgressBar = ({ state, maxScore, userHasAnswered }) => {
+  const answerProgress = userHasAnswered ? state.currentQuestion + 1 : state.currentQuestion
+
+  return (
+    <label className="progress">
+      <progress value={answerProgress} max={5} />
+      <span>Questão <strong>{state.currentQuestion + 1}</strong> / {state.quizData.length}</span>
+      <span><strong>{state.userScore}</strong> / {maxScore}</span>
+    </label>
+  )
+}
+
+const QuizGame = ({ state, userHasAnswered, onAnswerClick, onNextQuestionClick, onTimerFinished }) => {
+  const totalSeconds = state.quizData.length * 30
+
+  return (
+    <>
+      <div>
+        <h4>{state.quizData[state.currentQuestion].question}</h4>
+        <ul className="options">
+          {state.quizData[state.currentQuestion].options.map((option, index) => {
+            const answerClass = state.userAnswer === index ? 'answer' : ''
+            const correctOrWrongClass = userHasAnswered
+              ? state.quizData[state.currentQuestion].correctOption === index
+                ? 'correct'
+                : 'wrong'
+              : ''
+
+            return (
+              <li key={option}>
+                <button
+                  className={`btn btn-option ${answerClass} ${correctOrWrongClass}`}
+                  onClick={() => onAnswerClick(index)}
+                  disabled={userHasAnswered}
+                >
+                  {option}
+                </button>
+              </li>
+            )
+          }
+          )}
+        </ul>
+      </div>
+      <div>
+        {userHasAnswered &&
+          <button className="btn btn-ui" onClick={onNextQuestionClick}>
+            {state.currentQuestion === state.quizData.length - 1 ? 'Finalizar' : 'Próxima'}
+          </button>}
+        <div className="timer">
+          <Timer seconds={totalSeconds} onTimerFinished={onTimerFinished} />
+        </div>
+      </div>
+    </>
+  )
+}
 
 const App = () => {
   const [state, dispatch] = useReducer(quizReducer, initialState)
@@ -90,86 +186,24 @@ const App = () => {
   const handleNextQuestionClick = () => dispatch({ type: 'CLICKED_NEXT_QUESTION' })
   const handleResetQuizClick = () => dispatch({ type: 'RESET_QUIZ' })
   const handleTimerFinished = () => dispatch({ type: 'ENDED_TIMER' })
-  const handleStartQuizClick = () => dispatch({ type: 'STARTED_QUIZ'})
+  const handleStartQuizClick = () => dispatch({ type: 'STARTED_QUIZ' })
 
   const maxScore = state.quizData.reduce((acc, question) => acc + question.points, 0)
-  const percentage = (state.userScore * 100) / maxScore
-  const totalSeconds = state.quizData.length * 30
+
   const userHasAnswered = state.userAnswer !== null
-  const answerProgress = userHasAnswered  ? state.currentQuestion + 1 : state.currentQuestion
-  const resultMsg = {
-    '0': "😥 Poxa, você",
-    '20': "😑 Você fez",
-    '40': "😐 Opa! Você",
-    '60': "😉 Legal! Você",
-    '80': "😎 Muito bom! Você",
-    '100': "🏆 Caramba! Você"
-  }[`${percentage}`]
+
+
 
   return (
     <div className="app">
-      <header className="app-header">
-        <img src="logo-quiz-videogames.png" alt="Logo do Quiz de Videogammes" />
-        <h1>Quiz dos Videogames</h1>
-      </header>
+      <Header />
       <main className="main">
-        {state.shouldShowMenu && 
-          <div className="start">
-            <h2>Bem vindo(a) ao Quiz dos Videogames!</h2>
-            <h3>{state.quizData.length} questões pra te testar</h3>
-            <button className="btn" onClick={handleStartQuizClick}>Bora começar</button>
-          </div>
-        }
-        {state.shouldShowResult && !state.shouldShowMenu &&
-          <>
-            <div className="result">
-              <span>{resultMsg} {state.userScore} pontos de {maxScore} ({percentage}%)</span>
-            </div>
-            <button className="btn btn-ui" onClick={handleResetQuizClick}>Reiniciar Quiz</button>
-          </>
-        }
+        {state.shouldShowMenu && <Menu onStartQuizClick={handleStartQuizClick} state={state} />}
+        {state.shouldShowResult && !state.shouldShowMenu && <ScoreScreen onResetQuizClick={handleResetQuizClick} state={state} maxScore={maxScore} />}
         {state.quizData.length > 0 && !state.shouldShowResult && !state.shouldShowMenu &&
           <>
-            <label className="progress">
-              <progress value={answerProgress} max={5}/>
-              <span>Questão <strong>{state.currentQuestion + 1}</strong> / {state.quizData.length}</span>
-              <span><strong>{state.userScore}</strong> / {maxScore}</span>
-            </label>
-            <div>
-              <h4>{state.quizData[state.currentQuestion].question}</h4>
-              <ul className="options">
-                {state.quizData[state.currentQuestion].options.map((option, index) => {
-                  const answerClass = state.userAnswer === index ? 'answer' : ''
-                  const correctOrWrongClass = userHasAnswered
-                    ? state.quizData[state.currentQuestion].correctOption === index
-                      ? 'correct'
-                      : 'wrong'
-                    : ''
-
-                  return (
-                    <li key={option}>
-                      <button
-                        className={`btn btn-option ${answerClass} ${correctOrWrongClass}`}
-                        onClick={() => handleAnswerClick(index)}
-                        disabled={userHasAnswered}
-                      >
-                        {option}
-                      </button>
-                    </li>
-                  )
-                }
-                )}
-              </ul>
-            </div>
-            <div>
-              {userHasAnswered &&
-                <button className="btn btn-ui" onClick={handleNextQuestionClick}>
-                  {state.currentQuestion === state.quizData.length - 1 ? 'Finalizar' : 'Próxima'}
-                </button>}
-              <div className="timer">
-                <Timer seconds={totalSeconds} onTimerFinished={handleTimerFinished}/>
-              </div>
-            </div>
+            <ProgressBar state={state} maxScore={maxScore} userHasAnswered={userHasAnswered} />
+            <QuizGame state={state} userHasAnswered={userHasAnswered} onAnswerClick={handleAnswerClick} onNextQuestionClick={handleNextQuestionClick} onTimerFinished={handleTimerFinished} />
           </>
         }
       </main>
