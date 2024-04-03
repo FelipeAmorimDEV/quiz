@@ -1,7 +1,7 @@
 import { useReducer, useState, useRef } from "react"
 import { useEffect } from "react"
 
-const Timer = ({ seconds, onTimerFinished }) => {
+const CountdownTimer = ({ seconds, onTimerFinished }) => {
   const [timeRemaining, setTimeRemaining] = useState(seconds);
   const lastRenderTimeRef = useRef(new Date().getTime());
 
@@ -76,7 +76,7 @@ const quizReducer = (state, action) => {
 
 const initialState = { quizData: [], currentQuestion: 0, userAnswer: null, userScore: 0, shouldShowResult: false, shouldShowMenu: true }
 
-const Header = () => {
+const AppHeader = () => {
   return (
     <header className="app-header">
       <img src="logo-quiz-videogames.png" alt="Logo do Quiz de Videogammes" />
@@ -85,7 +85,7 @@ const Header = () => {
   )
 }
 
-const Menu = ({ onStartQuizClick, state }) => {
+const StartMenu = ({ onStartQuizClick, state }) => {
   return (
     <div className="start">
       <h2>Bem vindo(a) ao Quiz dos Videogames!</h2>
@@ -95,7 +95,7 @@ const Menu = ({ onStartQuizClick, state }) => {
   )
 }
 
-const ScoreScreen = ({ onResetQuizClick, state, maxScore }) => {
+const ResultScreen = ({ onResetQuizClick, state, maxScore }) => {
   const percentage = (state.userScore * 100) / maxScore
   const resultMsg = {
     '0': "😥 Poxa, você",
@@ -116,7 +116,7 @@ const ScoreScreen = ({ onResetQuizClick, state, maxScore }) => {
   )
 }
 
-const ProgressBar = ({ state, maxScore, userHasAnswered }) => {
+const ProgressIndicator = ({ state, maxScore, userHasAnswered }) => {
   const answerProgress = userHasAnswered ? state.currentQuestion + 1 : state.currentQuestion
 
   return (
@@ -128,7 +128,7 @@ const ProgressBar = ({ state, maxScore, userHasAnswered }) => {
   )
 }
 
-const QuizGame = ({ state, userHasAnswered, onAnswerClick, onNextQuestionClick, onTimerFinished }) => {
+const QuizComponent = ({ state, userHasAnswered, onAnswerClick, onNextQuestionClick, onTimerFinished }) => {
   const totalSeconds = state.quizData.length * 30
 
   return (
@@ -165,7 +165,7 @@ const QuizGame = ({ state, userHasAnswered, onAnswerClick, onNextQuestionClick, 
             {state.currentQuestion === state.quizData.length - 1 ? 'Finalizar' : 'Próxima'}
           </button>}
         <div className="timer">
-          <Timer seconds={totalSeconds} onTimerFinished={onTimerFinished} />
+          <CountdownTimer seconds={totalSeconds} onTimerFinished={onTimerFinished} />
         </div>
       </div>
     </>
@@ -192,18 +192,16 @@ const App = () => {
 
   const userHasAnswered = state.userAnswer !== null
 
-
-
   return (
     <div className="app">
-      <Header />
+      <AppHeader />
       <main className="main">
-        {state.shouldShowMenu && <Menu onStartQuizClick={handleStartQuizClick} state={state} />}
-        {state.shouldShowResult && !state.shouldShowMenu && <ScoreScreen onResetQuizClick={handleResetQuizClick} state={state} maxScore={maxScore} />}
+        {state.shouldShowMenu && <StartMenu onStartQuizClick={handleStartQuizClick} state={state} />}
+        {state.shouldShowResult && !state.shouldShowMenu && <ResultScreen onResetQuizClick={handleResetQuizClick} state={state} maxScore={maxScore} />}
         {state.quizData.length > 0 && !state.shouldShowResult && !state.shouldShowMenu &&
           <>
-            <ProgressBar state={state} maxScore={maxScore} userHasAnswered={userHasAnswered} />
-            <QuizGame state={state} userHasAnswered={userHasAnswered} onAnswerClick={handleAnswerClick} onNextQuestionClick={handleNextQuestionClick} onTimerFinished={handleTimerFinished} />
+            <ProgressIndicator state={state} maxScore={maxScore} userHasAnswered={userHasAnswered} />
+            <QuizComponent state={state} userHasAnswered={userHasAnswered} onAnswerClick={handleAnswerClick} onNextQuestionClick={handleNextQuestionClick} onTimerFinished={handleTimerFinished} />
           </>
         }
       </main>
